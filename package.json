@@ -1,0 +1,13 @@
+{
+  "name": "editorial-loop",
+  "version": "1.0.0",
+  "description": "Weekly editorial engine — reads vault through strategy lens, generates ideas via Claude, opens Draft PRs, cross-posts to LinkedIn",
+  "type": "module",
+  "scripts": {
+    "generate": "node index.js",
+    "publish": "node publish.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0"
+  }
+}

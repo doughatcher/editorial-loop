@@ -1,0 +1,70 @@
+name: Blog Idea Engine
+
+on:
+  schedule:
+    # Monday 8am EST (1pm UTC)
+    - cron: '0 13 * * 1'
+  workflow_dispatch:
+    inputs:
+      inject_context:
+        description: "Optional: inject a thought or angle for this week's ideas"
+        required: false
+        type: string
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout editorial-loop
+        uses: actions/checkout@v4
+
+      - name: Checkout dotcom
+        uses: actions/checkout@v4
+        with:
+          repository: doughatcher/dotcom
+          token: ${{ secrets.DOTCOM_PAT }}
+          path: dotcom
+          fetch-depth: 0
+
+      - name: Checkout vault backup
+        uses: actions/checkout@v4
+        with:
+          repository: superterran/obsidian-vault-backup
+          token: ${{ secrets.VAULT_READ_TOKEN }}
+          path: vault
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Configure git identity
+        working-directory: dotcom
+        run: |
+          git config user.name "editorial-loop[bot]"
+          git config user.email "actions@github.com"
+
+      - name: Run editorial loop
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          VAULT_PATH: ../vault
+          BLOG_PATH: ../dotcom/content/blog
+          DOTCOM_PATH: ../dotcom
+          INJECT_CONTEXT: ${{ inputs.inject_context }}
+          GH_TOKEN: ${{ secrets.DOTCOM_PAT }}
+        run: node index.js
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Blog Idea Engine" >> $GITHUB_STEP_SUMMARY
+          echo "Run at: $(date -u '+%Y-%m-%d %H:%M UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Check open Draft PRs → [doughatcher/dotcom pulls](https://github.com/doughatcher/dotcom/pulls)" >> $GITHUB_STEP_SUMMARY

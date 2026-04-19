@@ -1,0 +1,58 @@
+name: Publish Blog Post
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'content/blog/**.md'
+
+jobs:
+  linkedin:
+    runs-on: ubuntu-latest
+    # Only run if LINKEDIN_ACCESS_TOKEN is set — lets you disable cross-posting
+    # by removing the secret without touching the workflow
+    if: ${{ vars.LINKEDIN_ENABLED == 'true' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Find new/changed blog post
+        id: post
+        run: |
+          CHANGED=$(git diff --name-only HEAD~1 HEAD -- 'content/blog/*.md' \
+            | grep -v '\.gitkeep' | head -1)
+          echo "path=${CHANGED}" >> $GITHUB_OUTPUT
+          echo "Found: ${CHANGED}"
+
+      - name: Setup Node.js
+        if: steps.post.outputs.path != ''
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/editorial-loop/package-lock.json
+
+      - name: Install dependencies
+        if: steps.post.outputs.path != ''
+        run: npm ci --prefix apps/editorial-loop
+
+      - name: Generate LinkedIn post + publish
+        if: steps.post.outputs.path != ''
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
+          LINKEDIN_PERSON_URN: ${{ secrets.LINKEDIN_PERSON_URN }}
+          POST_PATH: ${{ steps.post.outputs.path }}
+          BASE_URL: https://doughatcher.com
+        run: node apps/editorial-loop/publish.js
+
+      - name: Summary
+        if: steps.post.outputs.path != ''
+        run: |
+          echo "## LinkedIn Cross-Post" >> $GITHUB_STEP_SUMMARY
+          echo "Post: \`${{ steps.post.outputs.path }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "Published at: $(date -u '+%Y-%m-%d %H:%M UTC')" >> $GITHUB_STEP_SUMMARY

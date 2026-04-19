@@ -1,0 +1,23 @@
+name = "editorial-slack-bot"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+compatibility_flags = ["nodejs_compat"]
+
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+# Secrets (set via `wrangler secret put`):
+#   SLACK_BOT_TOKEN       - xoxb-... bot token
+#   SLACK_SIGNING_SECRET  - signing secret from Slack app settings
+#   ANTHROPIC_API_KEY     - Claude API key
+#   GITHUB_TOKEN          - PAT with write access to dotcom + vault repos
+
+[vars]
+ENVIRONMENT = "production"
+
+# Repo targets
+DOTCOM_REPO = "doughatcher/dotcom"
+VAULT_REPO = "superterran/obsidian-vault-backup"
+VOICE_PROFILE_PATH = "Personal/Career/Public Voice - Positioning and Editorial POV.md"
+BLOG_CONTENT_PATH = "content/blog"

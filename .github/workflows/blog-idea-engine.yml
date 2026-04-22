@@ -34,6 +34,13 @@ jobs:
           token: ${{ secrets.VAULT_READ_TOKEN }}
           path: vault
 
+      - name: Checkout BAI vault
+        uses: actions/checkout@v4
+        with:
+          repository: blueacorninc/doug-markdown-vault
+          token: ${{ secrets.BAI_VAULT_READ_TOKEN }}
+          path: bai-vault
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -55,6 +62,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           VAULT_PATH: ../vault
+          BAI_VAULT_PATH: ../bai-vault
           BLOG_PATH: ../dotcom/content/blog
           DOTCOM_PATH: ../dotcom
           INJECT_CONTEXT: ${{ inputs.inject_context }}

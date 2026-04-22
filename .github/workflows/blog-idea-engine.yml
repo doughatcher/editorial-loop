@@ -62,10 +62,10 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          VAULT_PATH: ../vault
-          BAI_VAULT_PATH: ../bai-vault
-          BLOG_PATH: ../dotcom/content/blog
-          DOTCOM_PATH: ../dotcom
+          VAULT_PATH: vault
+          BAI_VAULT_PATH: bai-vault
+          BLOG_PATH: dotcom/content/blog
+          DOTCOM_PATH: dotcom
           INJECT_CONTEXT: ${{ inputs.inject_context }}
           GH_TOKEN: ${{ secrets.DOTCOM_PAT }}
         run: node index.js

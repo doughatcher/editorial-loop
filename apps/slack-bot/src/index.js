@@ -67,11 +67,14 @@ async function handleFeedback(event, env) {
   const { text, channel, ts, thread_ts } = event;
   const replyThread = thread_ts || ts;
 
+  // Strip bot @mention from app_mention events (e.g. "<@U123ABC> do the thing")
+  const cleanText = text.replace(/<@[A-Z0-9]+>/g, '').trim();
+
   try {
     await slackReply(channel, replyThread, '⏳ On it — analyzing your feedback...', env);
 
     // Ask Claude what the user wants to do
-    const intent = await parseIntent(text, env);
+    const intent = await parseIntent(cleanText, env);
 
     let result;
 

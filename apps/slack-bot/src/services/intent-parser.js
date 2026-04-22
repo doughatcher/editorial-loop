@@ -19,7 +19,7 @@ export async function parseIntent(userText, env) {
       'content-type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
+      model: 'claude-sonnet-4-6',
       max_tokens: 1024,
       tools: [{
         name: 'parse_intent',
@@ -55,8 +55,9 @@ export async function parseIntent(userText, env) {
       tool_choice: { type: 'tool', name: 'parse_intent' },
       messages: [{
         role: 'user',
-        content: `The user sent this feedback message to an editorial assistant bot:
+        content: `The user sent this feedback to an editorial assistant bot. It may be a voice transcript — expect run-on sentences, informal language, and stream-of-consciousness phrasing.
 
+Message:
 "${userText}"
 
 The bot can:
@@ -64,12 +65,23 @@ The bot can:
 2. Revise a specific blog post (stored in a GitHub repo)
 3. Do both at once
 
-Parse what the user wants. If they mention em-dashes, writing style, tone, or voice — that's a voice profile update. If they mention a specific post, title, or content change — that's a blog post update.`,
+Parsing rules:
+- If they mention writing style, tone, voice, em-dashes, punctuation, sentence structure, word choices to avoid — that's a voice profile update. Capture it as a clear, actionable rule in voiceNote.
+- If they mention a specific post, title, slug, or give content/editorial direction for a post — that's a blog post update. Extract the slug/title hint in blogSlug and translate their rambling into clear revision instructions in blogInstructions.
+- "regenerate the post", "rewrite the post", "fix the post", "let's redo the post" = blog post update.
+- When intent spans both voice style and post content, use update_both.
+- Only return unclear if the message is genuinely unrelated to writing or editorial work.
+
+For blogInstructions, synthesize their intent into clear editing instructions — do not just transcribe what they said.`,
       }],
     }),
   });
 
   const data = await res.json();
+  console.log('intent-parser response:', JSON.stringify(data).slice(0, 500));
+  if (data.error) {
+    throw new Error(`Anthropic API error: ${data.error.type} — ${data.error.message}`);
+  }
   const toolUse = data.content?.find(b => b.type === 'tool_use');
   return toolUse?.input ?? { action: 'unclear', summary: userText };
 }

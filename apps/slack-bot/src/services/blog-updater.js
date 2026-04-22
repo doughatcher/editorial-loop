@@ -59,7 +59,7 @@ async function revisePost(currentPost, instructions, env) {
     },
     body: JSON.stringify({
       model: 'claude-sonnet-4-6',
-      max_tokens: 8192,
+      max_tokens: 4096,
       messages: [{
         role: 'user',
         content: `You are revising a blog post for Doug Hatcher. His writing style rules:

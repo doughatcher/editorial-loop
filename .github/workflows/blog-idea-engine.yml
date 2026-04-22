@@ -36,6 +36,7 @@ jobs:
 
       - name: Checkout BAI vault
         uses: actions/checkout@v4
+        continue-on-error: true
         with:
           repository: blueacorninc/doug-markdown-vault
           token: ${{ secrets.BAI_VAULT_READ_TOKEN }}
